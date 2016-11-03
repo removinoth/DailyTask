@@ -27,7 +27,7 @@ module.exports = function(app) {
     });
     app.get('/sendEmail/', function(req, res) {
         var options = {
-            filename: './streamed-workbook.xlsx',
+            filename: './dailyTask.xlsx',
             useStyles: true,
             useSharedStrings: true
         };
@@ -73,49 +73,17 @@ module.exports = function(app) {
                 sheet.commit();
 
                 workbook.commit();
-                sendEmail1();
+                sendEmail();
             }
         })
     });
 
+
     function sendEmail() {
-        var transporter = mailer.createTransport(config.mailer.options);
-        console.log(fs.existsSync("./streamed-workbook.xlsx"));
-        console.log(fs.statSync("./streamed-workbook.xlsx"));
-        fs.readFile("./streamed-workbook.xlsx", function(err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                transporter.sendMail({
-                        from: config.mailer.from, // sender address
-                        to: 'vinoth@canwin.com',
-                        subject: 'Attachment!',
-                        body: 'mail content...',
-                        attachments: [{ 'filename': 'streamed-workbook.xlsx', 'content': data }]
-                    }),
-                    function(err, success) {
-                        if (err) {
-                            // Handle error
-                            console.log(err);
-                            res.end("no");
-
-                        } else {
-                            res.end("yes");
-
-                        }
-
-                    }
-            }
-
-        });
-
-    };
-
-    function sendEmail1() {
         var server = email.server.connect({
-            user: "test@mail.com",
-            password: "test@123",
-            host: "smtp.server.com",
+            user: config.mailer.options.auth.user,
+            password: config.mailer.options.auth.pass,
+            host: config.mailer.options.host,
             ssl: true
         });
 
@@ -127,7 +95,7 @@ module.exports = function(app) {
             subject: "testing Android App",
             attachment: [
                 //{data:"<html>i <i>hope</i> this works!</html>", alternative:true},
-                { path: "./streamed-workbook.xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name: "Dailysheet.xlsx" }
+                { path: "./dailyTask.xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name: "Dailysheet.xlsx" }
             ]
         };
 
