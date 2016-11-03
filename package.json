@@ -4,7 +4,7 @@
   "description": "daily task for cwt",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "start": "node index.js"
   },
   "author": "rajvin",
   "license": "ISC",
