@@ -6,7 +6,7 @@ var config = require('../config/config');
 var fs = require('fs');
 var smtpTransport = require('nodemailer-smtp-transport');
 var User = mongoose.model('User');
-var email = require("../node_modules/emailjs/email");
+var email = require("emailjs/email");
 
 module.exports = function(app) {
     app.get('/', function(req, res) {
