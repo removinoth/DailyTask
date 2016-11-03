@@ -1,14 +1,14 @@
 module.exports = {
         url : 'mongodb://localhost:27017/cwtTasks',
         mailer: {
-		from: 'test@canwin.com',
-		path: 'cwtTask',
+		from: 'test@mail.com',
+		path: 'Task',
 		options: {
 			//service: process.env.MAILER_SERVICE_PROVIDER || 'smtpout.secureserver.net',
-			host: 'smtpout.secureserver.net',
-			port: 3535,
+			host: 'smtp.server.com',
+			port: port,
 			auth: {
-				user: 'test@canwin.com',
+				user: 'test@mail.com',
 				pass: 'test@123'
 			}
 		}

@@ -6,6 +6,8 @@ var config = require('../config/config');
 var fs = require('fs');
 var smtpTransport = require('nodemailer-smtp-transport');
 var User = mongoose.model('User');
+var email = require("../node_modules/emailjs/email");
+
 module.exports = function(app) {
     app.get('/', function(req, res) {
         res.sendfile("index.html");
@@ -21,7 +23,7 @@ module.exports = function(app) {
                 res.end("yes");
             }
         })
-        
+
     });
     app.get('/sendEmail/', function(req, res) {
         var options = {
@@ -60,8 +62,8 @@ module.exports = function(app) {
                         taskType: data[i].taskType,
                         taskStatus: data[i].taskStatus
                     });
-                    sheet.getCell("D" + (i+2)).alignment = { wrapText: true };
-                    sheet.getCell("E" + (i+2)).alignment = { wrapText: true };
+                    sheet.getCell("D" + (i + 2)).alignment = { wrapText: true };
+                    sheet.getCell("E" + (i + 2)).alignment = { wrapText: true };
                 }
                 //sheet.getCell("D1").alignment = { wrapText: true };
 
@@ -75,60 +77,61 @@ module.exports = function(app) {
             }
         })
     });
-    function sendEmail(){
-    var transporter = mailer.createTransport(config.mailer.options);
-    console.log(fs.existsSync("./streamed-workbook.xlsx"));
-    console.log(fs.statSync("./streamed-workbook.xlsx"));
-    fs.readFile("./streamed-workbook.xlsx", function (err, data) {
-   if(err){
-    console.log(err);
-   }else{
-    transporter.sendMail({       
-        from: config.mailer.from, // sender address
-        to: 'vinoth@canwin.com', 
-        subject: 'Attachment!',
-        body: 'mail content...',
-        attachments: [{'filename': 'streamed-workbook.xlsx', 'content': data}]
-    }), function(err, success) {
-        if (err) {
-            // Handle error
-            console.log(err);
-                         res.end("no");
 
-        }else{
-                          res.end("yes");
+    function sendEmail() {
+        var transporter = mailer.createTransport(config.mailer.options);
+        console.log(fs.existsSync("./streamed-workbook.xlsx"));
+        console.log(fs.statSync("./streamed-workbook.xlsx"));
+        fs.readFile("./streamed-workbook.xlsx", function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                transporter.sendMail({
+                        from: config.mailer.from, // sender address
+                        to: 'vinoth@canwin.com',
+                        subject: 'Attachment!',
+                        body: 'mail content...',
+                        attachments: [{ 'filename': 'streamed-workbook.xlsx', 'content': data }]
+                    }),
+                    function(err, success) {
+                        if (err) {
+                            // Handle error
+                            console.log(err);
+                            res.end("no");
 
-        }
+                        } else {
+                            res.end("yes");
 
+                        }
+
+                    }
+            }
+
+        });
+
+    };
+
+    function sendEmail1() {
+        var server = email.server.connect({
+            user: "test@mail.com",
+            password: "test@123",
+            host: "smtp.server.com",
+            ssl: true
+        });
+
+        var message = {
+            text: "Hi All, \n   Hereby I have attached testing daily sheet along with this mail.",
+            from: "test@mail.com",
+            to: "test@mail.com",
+            //cc:      "sathish@canwin.com",
+            subject: "testing Android App",
+            attachment: [
+                //{data:"<html>i <i>hope</i> this works!</html>", alternative:true},
+                { path: "./streamed-workbook.xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name: "Dailysheet.xlsx" }
+            ]
+        };
+
+        // send the message and get a callback with an error or details of the message that was sent
+        server.send(message, function(err, message) { console.log(err || message); });
     }
-   }
-    
-});
-    
-};
-function sendEmail1(){
-  var email   = require("../node_modules/emailjs/email");
-var server  = email.server.connect({
-   user:    "test@canwin.com", 
-   password:"test@123", 
-   host:    "smtpout.secureserver.net", 
-   ssl:     true
-});
-
-var message = {
-   text:    "Hi All, \n   Hereby I have attached testing daily sheet along with this mail.", 
-   from:    "vinoth@canwin.com", 
-   to:      "vinoth@canwin.com",
-   //cc:      "sathish@canwin.com",
-   subject: "testing Android App",
-   attachment: 
-   [
-      //{data:"<html>i <i>hope</i> this works!</html>", alternative:true},
-      {path:"./streamed-workbook.xlsx", type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name:"Dailysheet.xlsx"}
-   ]
-};
-
-// send the message and get a callback with an error or details of the message that was sent
-server.send(message, function(err, message) { console.log(err || message); });
-}
 };
