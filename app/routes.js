@@ -1,0 +1,134 @@
+var user = require('./model/users');
+var Excel = require('exceljs');
+var mongoose = require('mongoose');
+var mailer = require('nodemailer');
+var config = require('../config/config');
+var fs = require('fs');
+var smtpTransport = require('nodemailer-smtp-transport');
+var User = mongoose.model('User');
+module.exports = function(app) {
+    app.get('/', function(req, res) {
+        res.sendfile("index.html");
+    });
+    app.post('/cwttaskdetails', function(req, res) {
+        console.log('here');
+        user = new User(req.body);
+        user.save(req.body, function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(data);
+                res.end("yes");
+            }
+        })
+        
+    });
+    app.get('/sendEmail/', function(req, res) {
+        var options = {
+            filename: './streamed-workbook.xlsx',
+            useStyles: true,
+            useSharedStrings: true
+        };
+        var workbook = new Excel.stream.xlsx.WorkbookWriter(options);
+        var sheet = workbook.addWorksheet('My Sheet1');
+        sheet.columns = [
+            { header: 'S.No', key: 'sno', width: 10 },
+            { header: 'client', key: 'client', width: 32 },
+            { header: 'project', key: 'project', width: 20, outlineLevel: 1 },
+            { header: 'task', key: 'task', width: 32, outlineLevel: 1 },
+            { header: 'subtask', key: 'subtask', width: 32, outlineLevel: 1 },
+            { header: 'date', key: 'date', width: 15, outlineLevel: 1 },
+            { header: 'hours', key: 'hours', width: 10, outlineLevel: 1 },
+            { header: 'taskType', key: 'taskType', width: 10, outlineLevel: 1 },
+            { header: 'taskStatus', key: 'taskStatus', width: 10, outlineLevel: 1 }
+        ];
+        User.find(function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(data)
+                var row = [];
+                for (var i = 0; i < data.length; i++) {
+                    row = sheet.addRow({
+                        sno: i,
+                        client: data[i].client,
+                        project: data[i].project,
+                        task: data[i].task,
+                        subtask: data[i].subtask,
+                        date: data[i].date,
+                        hours: data[i].hours,
+                        taskType: data[i].taskType,
+                        taskStatus: data[i].taskStatus
+                    });
+                    sheet.getCell("D" + (i+2)).alignment = { wrapText: true };
+                    sheet.getCell("E" + (i+2)).alignment = { wrapText: true };
+                }
+                //sheet.getCell("D1").alignment = { wrapText: true };
+
+                row.commit();
+
+
+                sheet.commit();
+
+                workbook.commit();
+                sendEmail1();
+            }
+        })
+    });
+    function sendEmail(){
+    var transporter = mailer.createTransport(config.mailer.options);
+    console.log(fs.existsSync("./streamed-workbook.xlsx"));
+    console.log(fs.statSync("./streamed-workbook.xlsx"));
+    fs.readFile("./streamed-workbook.xlsx", function (err, data) {
+   if(err){
+    console.log(err);
+   }else{
+    transporter.sendMail({       
+        from: config.mailer.from, // sender address
+        to: 'vinoth@canwin.com', 
+        subject: 'Attachment!',
+        body: 'mail content...',
+        attachments: [{'filename': 'streamed-workbook.xlsx', 'content': data}]
+    }), function(err, success) {
+        if (err) {
+            // Handle error
+            console.log(err);
+                         res.end("no");
+
+        }else{
+                          res.end("yes");
+
+        }
+
+    }
+   }
+    
+});
+    
+};
+function sendEmail1(){
+  var email   = require("../node_modules/emailjs/email");
+var server  = email.server.connect({
+   user:    "test@canwin.com", 
+   password:"test@123", 
+   host:    "smtpout.secureserver.net", 
+   ssl:     true
+});
+
+var message = {
+   text:    "Hi All, \n   Hereby I have attached testing daily sheet along with this mail.", 
+   from:    "vinoth@canwin.com", 
+   to:      "vinoth@canwin.com",
+   //cc:      "sathish@canwin.com",
+   subject: "testing Android App",
+   attachment: 
+   [
+      //{data:"<html>i <i>hope</i> this works!</html>", alternative:true},
+      {path:"./streamed-workbook.xlsx", type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name:"Dailysheet.xlsx"}
+   ]
+};
+
+// send the message and get a callback with an error or details of the message that was sent
+server.send(message, function(err, message) { console.log(err || message); });
+}
+};

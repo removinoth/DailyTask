@@ -1,0 +1,20 @@
+{
+  "name": "cwdailytask",
+  "version": "1.0.0",
+  "description": "daily task for cwt",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "rajvin",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "exceljs": "^0.2.33",
+    "express": "^4.14.0",
+    "fs": "0.0.1-security",
+    "mongoose": "^4.6.5",
+    "nodemailer": "^2.6.4",
+    "nodemailer-smtp-transport": "^2.7.2"
+  }
+}
